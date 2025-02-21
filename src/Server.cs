@@ -22,7 +22,7 @@ while (true)
     Console.WriteLine("request: " + request);
 
     // Parse the path from the request
-    string[] requestLines = request.Split('\n');
+       string[] requestLines = request.Split('\n');
     string[] requestParts = requestLines[0].Split(' ');
     string path = requestParts[1];
 
@@ -31,6 +31,18 @@ while (true)
     if (path == "/")
     {
         response = "HTTP/1.1 200 OK\r\n\r\n";
+    }
+    else if (path.StartsWith("/echo/"))
+    {
+        // Extract the content to echo (everything after /echo/)
+        string content = path.Substring("/echo/".Length);
+        
+        // Prepare response with headers
+        response = "HTTP/1.1 200 OK\r\n" +
+                  "Content-Type: text/plain\r\n" +
+                  $"Content-Length: {content.Length}\r\n" +
+                  "\r\n" +
+                  content;
     }
     else
     {
