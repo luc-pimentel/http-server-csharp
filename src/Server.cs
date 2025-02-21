@@ -157,7 +157,7 @@ public class Server
                 
                 // Check if client accepts gzip encoding
                 if (acceptEncoding.Contains("gzip"))
-                {
+                { 
                     using var memoryStream = new MemoryStream();
                     using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Compress))
                     {
