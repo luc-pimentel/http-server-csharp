@@ -7,12 +7,12 @@ Console.WriteLine("Logs from your program will appear here!");
 public class Server
 {
     private static string _directory = "";
-    private static TcpListener server = new TcpListener(IPAddress.Any, 4221);  // Initialize at declaration
 
     public static async Task Main(string[] args)
     {
         Console.WriteLine("Logs from your program will appear here!");
-        
+        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+        TcpListener server = new TcpListener(IPAddress.Any, 4221);
         server.Start();
         Console.WriteLine("Server started on port 4221");
         
