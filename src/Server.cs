@@ -65,10 +65,10 @@ public class Server
             }
 
             // Handle POST request to /files/
-            if (method == "POST" && path.StartsWith("/files/") && _directory != null)
+            if (method == "POST" && path.StartsWith("/files/"))
             {
                 string filename = path.Substring("/files/".Length);
-                string fullPath = Path.Combine(_directory, filename);
+                string fullPath = Path.Combine(_directory ?? "", filename);
                 Console.WriteLine("fullPath: " + fullPath);
                 
                 
