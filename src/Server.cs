@@ -155,7 +155,7 @@ public class Server
                 string content = path.Substring("/echo/".Length);
                 byte[] contentBytes = System.Text.Encoding.ASCII.GetBytes(content);
                 
-                // Check if client accepts gzip encoding
+                // Check if client accepts gzip encoding 
                 if (acceptEncoding.Contains("gzip"))
                 { 
                     using var memoryStream = new MemoryStream();
