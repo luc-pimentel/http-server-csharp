@@ -60,12 +60,12 @@ public class Server
             // Prepare response based on path
             string response;
             string requestBody = "";
-            if (contentLength > 0)
-            {
-                byte[] bodyBuffer = new byte[contentLength];
-                await stream.ReadAsync(bodyBuffer, 0, contentLength);
-                requestBody = System.Text.Encoding.ASCII.GetString(bodyBuffer);
-            }
+            //if (contentLength > 0)
+            //{
+            //    byte[] bodyBuffer = new byte[contentLength];
+            //    await stream.ReadAsync(bodyBuffer, 0, contentLength);
+            //    requestBody = System.Text.Encoding.ASCII.GetString(bodyBuffer);
+            //}
 
             // Handle POST request to /files/
             if (method == "POST" && path.StartsWith("/files/"))
