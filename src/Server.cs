@@ -13,7 +13,6 @@ public class Server
     {
         Console.WriteLine("Logs from your program will appear here!");
         
-        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
         server.Start();
         Console.WriteLine("Server started on port 4221");
         
