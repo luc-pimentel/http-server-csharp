@@ -69,6 +69,8 @@ public class Server
             {
                 string filename = path.Substring("/files/".Length);
                 string fullPath = Path.Combine(_directory, filename);
+                Console.WriteLine("fullPath: " + fullPath);
+                
                 
                 await File.WriteAllTextAsync(fullPath, requestBody);
                 
