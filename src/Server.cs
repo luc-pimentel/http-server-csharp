@@ -126,6 +126,7 @@ public class Server
                 response = "HTTP/1.1 404 Not Found\r\n\r\n";
             }
 
+            Console.WriteLine("response: " + response);
             byte[] responseBytes = System.Text.Encoding.ASCII.GetBytes(response);
             await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
         }
