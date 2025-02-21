@@ -22,9 +22,19 @@ while (true)
     Console.WriteLine("request: " + request);
 
     // Parse the path from the request
-       string[] requestLines = request.Split('\n');
+    string[] requestLines = request.Split('\n');
     string[] requestParts = requestLines[0].Split(' ');
     string path = requestParts[1];
+
+    string userAgent = "";
+    foreach (string line in requestLines)
+    {
+        if (line.StartsWith("User-Agent: ", StringComparison.OrdinalIgnoreCase))
+        {
+            userAgent = line.Substring("User-Agent: ".Length).Trim();
+            break;
+        }
+    }
 
     // Prepare response based on path
     string response;
@@ -43,6 +53,14 @@ while (true)
                   $"Content-Length: {content.Length}\r\n" +
                   "\r\n" +
                   content;
+    }
+        else if (path == "/user-agent")
+    {
+        response = "HTTP/1.1 200 OK\r\n" +
+                  "Content-Type: text/plain\r\n" +
+                  $"Content-Length: {userAgent.Length}\r\n" +
+                  "\r\n" +
+                  userAgent;
     }
     else
     {
