@@ -21,25 +21,35 @@ public class Server
         }
     }
     static async Task HandleClientAsync(Socket clientSocket)
+{
+    try
     {
-        try
-        {
         using (clientSocket)
         using (NetworkStream stream = new NetworkStream(clientSocket))
         {
-            // Read the HTTP request
-            byte[] buffer = new byte[1024];
+            // Read the initial request headers
+            byte[] buffer = new byte[4096];
             int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
             string request = System.Text.Encoding.ASCII.GetString(buffer, 0, bytesRead);
-            Console.WriteLine("request: " + request);
+            Console.WriteLine("Raw request:\n" + request);
 
-            // Parse the path from the request
-            string[] requestLines = request.Split('\n');
+            // Find the end of headers (marked by double CRLF)
+            int headerEnd = request.IndexOf("\r\n\r\n");
+            if (headerEnd == -1)
+            {
+                Console.WriteLine("Error: No header termination found");
+                return;
+            }
+
+            // Parse only the headers portion
+            string headers = request.Substring(0, headerEnd);
+            string[] requestLines = headers.Split('\n');
             string[] requestParts = requestLines[0].Split(' ');
             string method = requestParts[0];
             string path = requestParts[1];
-            Console.WriteLine("method: " + method + " path: " + path);
+            Console.WriteLine($"method: {method} path: {path}");
 
+            // Parse headers for User-Agent and Content-Length
             string userAgent = "";
             int contentLength = 0;
             foreach (string line in requestLines)
@@ -47,42 +57,67 @@ public class Server
                 if (line.StartsWith("User-Agent: ", StringComparison.OrdinalIgnoreCase))
                 {
                     userAgent = line.Substring("User-Agent: ".Length).Trim();
-                    Console.WriteLine("userAgent: " + userAgent);
+                    Console.WriteLine($"userAgent: {userAgent}");
                 }
                 else if (line.StartsWith("Content-Length: ", StringComparison.OrdinalIgnoreCase))
                 {
                     int.TryParse(line.Substring("Content-Length: ".Length).Trim(), out contentLength);
-                    Console.WriteLine("contentLength: " + contentLength);
+                    Console.WriteLine($"contentLength: {contentLength}");
                 }
             }
 
+            // Read the request body if present
+            string requestBody = "";
+            if (contentLength > 0)
+            {
+                // The body starts after the double CRLF
+                int bodyStartInBuffer = headerEnd + 4;
+                int bodyBytesInBuffer = bytesRead - bodyStartInBuffer;
+                
+                // Create a buffer for the complete body
+                byte[] bodyBuffer = new byte[contentLength];
+                
+                // Copy any body bytes we already read
+                if (bodyBytesInBuffer > 0)
+                {
+                    Array.Copy(buffer, bodyStartInBuffer, bodyBuffer, 0, bodyBytesInBuffer);
+                }
+                
+                // Read any remaining body bytes
+                int remainingBytes = contentLength - bodyBytesInBuffer;
+                int totalBytesRead = bodyBytesInBuffer;
+                
+                while (remainingBytes > 0)
+                {
+                    int n = await stream.ReadAsync(bodyBuffer, totalBytesRead, remainingBytes);
+                    if (n == 0) break; // Connection closed
+                    totalBytesRead += n;
+                    remainingBytes -= n;
+                }
+                
+                requestBody = System.Text.Encoding.ASCII.GetString(bodyBuffer);
+                Console.WriteLine($"Request body: '{requestBody}'");
+            }
 
             // Prepare response based on path
             string response;
-            string requestBody = "";
-            //if (contentLength > 0)
-            //{
-            //    byte[] bodyBuffer = new byte[contentLength];
-            //    await stream.ReadAsync(bodyBuffer, 0, contentLength);
-            //    requestBody = System.Text.Encoding.ASCII.GetString(bodyBuffer);
-            //}
 
             // Handle POST request to /files/
             if (method == "POST" && path.StartsWith("/files/"))
             {
                 string filename = path.Substring("/files/".Length);
                 string fullPath = Path.Combine(_directory ?? "", filename);
-                Console.WriteLine("fullPath: " + fullPath);
+                Console.WriteLine($"Writing to file: {fullPath}");
+                Console.WriteLine($"Content to write: '{requestBody}'");
                 
-                
-                await File.WriteAllTextAsync(fullPath, requestBody ?? "");
+                await File.WriteAllTextAsync(fullPath, requestBody);
                 
                 response = "HTTP/1.1 201 Created\r\n\r\n";
             }
             else if (path.StartsWith("/files/") && _directory != null)
             {
-                    string filename = path.Substring("/files/".Length);
-                    string fullPath = Path.Combine(_directory, filename);
+                string filename = path.Substring("/files/".Length);
+                string fullPath = Path.Combine(_directory, filename);
 
                 if (File.Exists(fullPath))
                 {
