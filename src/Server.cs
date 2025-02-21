@@ -5,21 +5,29 @@ using System.IO;
 Console.WriteLine("Logs from your program will appear here!");
 // ... existing code ...
 
-TcpListener server = new TcpListener(IPAddress.Any, 4221);
-server.Start();
-
-while (true)
+public class Server
 {
-    TcpClient client = server.AcceptTcpClient();
-    // Handle each client in a separate task
-    _ = HandleClientAsync(client);
-}
+    private static string _directory = "";
 
-// Add this new method
-static async Task HandleClientAsync(TcpClient client)
-{
-    try
+    public static async Task Main(string[] args)
     {
+        // Add this line before starting the server loop
+        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+
+        TcpListener server = new TcpListener(IPAddress.Any, 4221);
+        server.Start();
+
+        while (true)
+        {
+            TcpClient client = server.AcceptTcpClient();
+            // Handle each client in a separate task
+            _ = HandleClientAsync(client);
+        }
+    }
+    static async Task HandleClientAsync(TcpClient client)
+    {
+        try
+        {
         using (client)
         using (NetworkStream stream = client.GetStream())
         {
@@ -45,14 +53,13 @@ static async Task HandleClientAsync(TcpClient client)
             }
 
             // Prepare response based on path
-            string directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
 
             // Prepare response based on path
             string response;
             if (path.StartsWith("/files/"))
             {
-                string filename = path.Substring("/files/".Length);
-                string fullPath = Path.Combine(directory, filename);
+                    string filename = path.Substring("/files/".Length);
+                    string fullPath = Path.Combine(_directory, filename);
 
                 if (File.Exists(fullPath))
                 {
@@ -109,4 +116,5 @@ static async Task HandleClientAsync(TcpClient client)
     {
         Console.WriteLine($"Error handling client: {ex.Message}");
     }
+}
 }
