@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-
+using System.IO.Compression;
 public class Server
 {
     private static string? _directory;
@@ -52,6 +52,7 @@ public class Server
             // Parse headers for User-Agent and Content-Length
             string userAgent = "";
             int contentLength = 0;
+            string acceptEncoding = "";
             foreach (string line in requestLines)
             {
                 if (line.StartsWith("User-Agent: ", StringComparison.OrdinalIgnoreCase))
@@ -63,6 +64,11 @@ public class Server
                 {
                     int.TryParse(line.Substring("Content-Length: ".Length).Trim(), out contentLength);
                     Console.WriteLine($"contentLength: {contentLength}");
+                }
+                else if (line.StartsWith("Accept-Encoding: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    acceptEncoding = line.Substring("Accept-Encoding: ".Length).Trim();
+                    Console.WriteLine($"acceptEncoding: {acceptEncoding}");
                 }
             }
 
@@ -147,11 +153,38 @@ public class Server
             else if (path.StartsWith("/echo/"))
             {
                 string content = path.Substring("/echo/".Length);
-                response = "HTTP/1.1 200 OK\r\n" +
-                          "Content-Type: text/plain\r\n" +
-                          $"Content-Length: {content.Length}\r\n" +
-                          "\r\n" +
-                          content;
+                byte[] contentBytes = System.Text.Encoding.ASCII.GetBytes(content);
+                
+                // Check if client accepts gzip encoding
+                if (acceptEncoding.Contains("gzip"))
+                {
+                    using var memoryStream = new MemoryStream();
+                    using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Compress))
+                    {
+                        gzipStream.Write(contentBytes, 0, contentBytes.Length);
+                    }
+                    
+                    byte[] compressedContent = memoryStream.ToArray();
+                    
+                    response = "HTTP/1.1 200 OK\r\n" +
+                              "Content-Type: text/plain\r\n" +
+                              "Content-Encoding: gzip\r\n" +
+                              $"Content-Length: {compressedContent.Length}\r\n" +
+                              "\r\n";
+                              
+                    byte[] headerBytes = System.Text.Encoding.ASCII.GetBytes(response);
+                    await stream.WriteAsync(headerBytes, 0, headerBytes.Length);
+                    await stream.WriteAsync(compressedContent, 0, compressedContent.Length);
+                    return;
+                }
+                else
+                {
+                    response = "HTTP/1.1 200 OK\r\n" +
+                              "Content-Type: text/plain\r\n" +
+                              $"Content-Length: {content.Length}\r\n" +
+                              "\r\n" +
+                              content;
+                }
             }
             else if (path == "/user-agent")
             {
