@@ -7,14 +7,15 @@ Console.WriteLine("Logs from your program will appear here!");
 public class Server
 {
     private static string _directory = "";
-    private static TcpListener server = new TcpListener(IPAddress.Any, 4221);
-    // Remove the invalid line: server.Start();
+    private static TcpListener server = new TcpListener(IPAddress.Any, 4221);  // Initialize at declaration
 
     public static async Task Main(string[] args)
     {
-        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+        Console.WriteLine("Logs from your program will appear here!");
         
-        server.Start();  // Move the Start() call here
+        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+        server = new TcpListener(IPAddress.Any, 4221);  // Initialize here
+        server.Start();
         
         while (true)
         {
