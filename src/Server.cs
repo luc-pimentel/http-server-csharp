@@ -21,7 +21,7 @@ public class Server
         {
             TcpClient client = server.AcceptTcpClient();
             // Handle each client in a separate task
-            _ = HandleClientAsync(client);
+            await HandleClientAsync(client);
         }
     }
     static async Task HandleClientAsync(TcpClient client)
