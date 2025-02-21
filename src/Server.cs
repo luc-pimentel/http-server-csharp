@@ -6,12 +6,12 @@ Console.WriteLine("Logs from your program will appear here!");
 
 public class Server
 {
-
+    private static string? _directory;
     public static void Main(string[] args)
     {
         Console.WriteLine("Starting server...");
         Console.WriteLine($"Received command: {string.Join(" ", args)}");
-        string _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
         TcpListener server = new TcpListener(IPAddress.Any, 4221);
         server.Start();
         Console.WriteLine("Server started on port 4221");
@@ -54,7 +54,7 @@ public class Server
 
             // Prepare response based on path
             string response;
-            if (path.StartsWith("/files/"))
+            if (path.StartsWith("/files/") && _directory != null)
             {
                     string filename = path.Substring("/files/".Length);
                     string fullPath = Path.Combine(_directory, filename);
