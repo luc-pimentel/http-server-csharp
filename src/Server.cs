@@ -16,6 +16,7 @@ public class Server
         _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
         server = new TcpListener(IPAddress.Any, 4221);  // Initialize here
         server.Start();
+        Console.WriteLine("Server started on port 4221");
         
         while (true)
         {
