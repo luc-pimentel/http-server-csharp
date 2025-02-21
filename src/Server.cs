@@ -8,9 +8,10 @@ public class Server
 {
     private static string _directory = "";
 
-    public static async Task Main(string[] args)
+    public static void Main(string[] args)
     {
-        Console.WriteLine("Logs from your program will appear here!");
+        Console.WriteLine("Starting server...");
+        Console.WriteLine($"Received command: {string.Join(" ", args)}");
         _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
         TcpListener server = new TcpListener(IPAddress.Any, 4221);
         server.Start();
@@ -18,16 +19,16 @@ public class Server
         
         while (true)
         {
-            TcpClient client = server.AcceptTcpClient();
-            await HandleClientAsync(client);
+            Socket clientSocket = server.AcceptSocket();
+            _ = Task.Run(() => HandleClientAsync(clientSocket));
         }
     }
-    static async Task HandleClientAsync(TcpClient client)
+    static async Task HandleClientAsync(Socket clientSocket)
     {
         try
         {
-        using (client)
-        using (NetworkStream stream = client.GetStream())
+        using (clientSocket)
+        using (NetworkStream stream = new NetworkStream(clientSocket))
         {
             // Read the HTTP request
             byte[] buffer = new byte[1024];
