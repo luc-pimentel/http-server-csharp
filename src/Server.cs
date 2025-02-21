@@ -45,8 +45,37 @@ static async Task HandleClientAsync(TcpClient client)
             }
 
             // Prepare response based on path
+            string directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+
+            // Prepare response based on path
             string response;
-            if (path == "/")
+            if (path.StartsWith("/files/"))
+            {
+                string filename = path.Substring("/files/".Length);
+                string fullPath = Path.Combine(directory, filename);
+
+                if (File.Exists(fullPath))
+                {
+                    byte[] fileContent = await File.ReadAllBytesAsync(fullPath);
+                    response = "HTTP/1.1 200 OK\r\n" +
+                              "Content-Type: application/octet-stream\r\n" +
+                              $"Content-Length: {fileContent.Length}\r\n" +
+                              "\r\n";
+                    
+                    // Send headers
+                    byte[] headerBytes = System.Text.Encoding.ASCII.GetBytes(response);
+                    await stream.WriteAsync(headerBytes, 0, headerBytes.Length);
+                    
+                    // Send file content
+                    await stream.WriteAsync(fileContent, 0, fileContent.Length);
+                    return;
+                }
+                else
+                {
+                    response = "HTTP/1.1 404 Not Found\r\n\r\n";
+                }
+            }
+            else if (path == "/")
             {
                 response = "HTTP/1.1 200 OK\r\n\r\n";
             }
