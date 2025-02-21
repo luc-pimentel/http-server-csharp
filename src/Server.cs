@@ -6,13 +6,12 @@ Console.WriteLine("Logs from your program will appear here!");
 
 public class Server
 {
-    private static string _directory = "";
 
     public static void Main(string[] args)
     {
         Console.WriteLine("Starting server...");
         Console.WriteLine($"Received command: {string.Join(" ", args)}");
-        _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
+        string _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
         TcpListener server = new TcpListener(IPAddress.Any, 4221);
         server.Start();
         Console.WriteLine("Server started on port 4221");
