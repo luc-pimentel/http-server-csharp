@@ -36,23 +36,45 @@ public class Server
             // Parse the path from the request
             string[] requestLines = request.Split('\n');
             string[] requestParts = requestLines[0].Split(' ');
+            string method = requestParts[0];
             string path = requestParts[1];
 
             string userAgent = "";
+            int contentLength = 0;
             foreach (string line in requestLines)
             {
                 if (line.StartsWith("User-Agent: ", StringComparison.OrdinalIgnoreCase))
                 {
                     userAgent = line.Substring("User-Agent: ".Length).Trim();
-                    break;
+                }
+                else if (line.StartsWith("Content-Length: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    int.TryParse(line.Substring("Content-Length: ".Length).Trim(), out contentLength);
                 }
             }
 
-            // Prepare response based on path
 
             // Prepare response based on path
             string response;
-            if (path.StartsWith("/files/") && _directory != null)
+            string requestBody = "";
+            if (contentLength > 0)
+            {
+                byte[] bodyBuffer = new byte[contentLength];
+                await stream.ReadAsync(bodyBuffer, 0, contentLength);
+                requestBody = System.Text.Encoding.ASCII.GetString(bodyBuffer);
+            }
+
+            // Handle POST request to /files/
+            if (method == "POST" && path.StartsWith("/files/") && _directory != null)
+            {
+                string filename = path.Substring("/files/".Length);
+                string fullPath = Path.Combine(_directory, filename);
+                
+                await File.WriteAllTextAsync(fullPath, requestBody);
+                
+                response = "HTTP/1.1 201 Created\r\n\r\n";
+            }
+            else if (path.StartsWith("/files/") && _directory != null)
             {
                     string filename = path.Substring("/files/".Length);
                     string fullPath = Path.Combine(_directory, filename);
