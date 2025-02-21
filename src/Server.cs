@@ -47,10 +47,12 @@ public class Server
                 if (line.StartsWith("User-Agent: ", StringComparison.OrdinalIgnoreCase))
                 {
                     userAgent = line.Substring("User-Agent: ".Length).Trim();
+                    Console.WriteLine("userAgent: " + userAgent);
                 }
                 else if (line.StartsWith("Content-Length: ", StringComparison.OrdinalIgnoreCase))
                 {
                     int.TryParse(line.Substring("Content-Length: ".Length).Trim(), out contentLength);
+                    Console.WriteLine("contentLength: " + contentLength);
                 }
             }
 
