@@ -38,6 +38,7 @@ public class Server
             string[] requestParts = requestLines[0].Split(' ');
             string method = requestParts[0];
             string path = requestParts[1];
+            Console.WriteLine("method: " + method + " path: " + path);
 
             string userAgent = "";
             int contentLength = 0;
@@ -72,7 +73,7 @@ public class Server
                 Console.WriteLine("fullPath: " + fullPath);
                 
                 
-                await File.WriteAllTextAsync(fullPath, requestBody);
+                await File.WriteAllTextAsync(fullPath, requestBody ?? "");
                 
                 response = "HTTP/1.1 201 Created\r\n\r\n";
             }
