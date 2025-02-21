@@ -3,24 +3,22 @@ using System.Net.Sockets;
 using System.IO;
 // You can use print statements as follows for debugging, they'll be visible when running tests.
 Console.WriteLine("Logs from your program will appear here!");
-// ... existing code ...
 
 public class Server
 {
     private static string _directory = "";
+    private static TcpListener server = new TcpListener(IPAddress.Any, 4221);
+    // Remove the invalid line: server.Start();
 
     public static async Task Main(string[] args)
     {
-        // Add this line before starting the server loop
         _directory = args.Length > 1 && args[0] == "--directory" ? args[1] : "";
-
-        TcpListener server = new TcpListener(IPAddress.Any, 4221);
-        server.Start();
-
+        
+        server.Start();  // Move the Start() call here
+        
         while (true)
         {
             TcpClient client = server.AcceptTcpClient();
-            // Handle each client in a separate task
             await HandleClientAsync(client);
         }
     }
